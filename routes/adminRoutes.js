@@ -1,6 +1,7 @@
 'use strict';
 
 var bodyParser = require("body-parser");
+const globalErrorHandler = require('../controllers/errorController');
 
 module.exports = function(app) {
     app.use(bodyParser.json());
@@ -16,4 +17,9 @@ module.exports = function(app) {
     new testRoute(app);
 
     /* Admin other Routes end */
+
+
+    // Global error
+
+    app.use(globalErrorHandler);
 }
