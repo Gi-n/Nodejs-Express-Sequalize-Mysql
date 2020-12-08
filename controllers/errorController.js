@@ -1,15 +1,25 @@
+
+
 const sendErrorDev = (err, res) => {
-    if (err.name === 'UniqueConstraintError' || err.name === 'SequelizeValidationError') {
+    // console.log('err.name', err);
+    // console.log('err.message', err.message);
+    // console.log(err.errors[0]);
+    // const errMessage = err.errors.ValidationErrorItem.message.split('.')[1]
+    
+    if (err.name === 'SequelizeUniqueConstraintError' ||  err.name === 'SequelizeValidationError' ) {
         let errorList = err.errors.map(e => {
             let obj = {}
             obj[e] = e.message
             return obj;
         })
+        const errors = errorList.map(i => Object.keys(i).map(key => i[key]));
+        let errMessage = errors[0][0].split('.')[1];
         const error = {
             statusCode: 400,
             status: false,
             stack: errorList,
-            message: err.name === 'SequelizeValidationError' ? 'Validation error 😞' : 'Duplicate entry found😕',
+            message: errMessage === '' || undefined ? err.message : errMessage 
+            // message: err.name === 'SequelizeValidationError' ? 'Validation error 😞' : 'Duplicate entry found😕',
         }
         sendErrorResponse(error, res);
     } else {
