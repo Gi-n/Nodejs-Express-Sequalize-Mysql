@@ -21,13 +21,17 @@ module.exports = function (app) {
     // Auth End Routes
 
     //  Protected route 
-    app.all('/api/v1/*', passport.authenticate(), function (req, res, next) {
+    app.all('/api/v1/*', function (req, res, next) {
         next();
     });
 
     /* Admin Protected Routes */
     var testRoute = require('./testRoute');
     new testRoute(app);
+    var userRoute = require('./userRoute');
+    new userRoute(app);
+    var notesRoute = require('./notesRoute');
+    new notesRoute(app);
     /* Admin other Routes end */
 
     // catch 404 and forward to error handler

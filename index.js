@@ -8,6 +8,9 @@ const xss = require('xss-clean');
 const rateLimit = require('express-rate-limit');
 const cookieParser = require('cookie-parser');
 const compression = require('compression');
+const responseTime = require('response-time');
+const redis = require('redis');
+const { promisify } = require('util');
 
 const app = express();
 
@@ -23,18 +26,34 @@ app.use(cors());
 //   origin: 'https://www.demo.com'
 // }))
 
+app.use(express.json({ extended: false }));
 // parse requests of content-type: application/json
 app.use(bodyParser.json({ limit: '5mb' }));
 
 // Set security HTTP headers
 app.use(helmet());
 
+
 // Data sanitization against XSS
 app.use(xss());
 
 app.use(cookieParser());
 
-app.use(compression());
+app.use(compression({
+    level: 6,
+    threshold: 10 * 1000, // less than 50kb no need to compress.
+    filter: function (req, res) {
+        if (req.headers['x-no-compression']) {
+            // don't compress responses with this request header
+            return false
+        }
+        // fallback to standard filter function
+        return compression.filter(req, res)
+    }
+}));
+
+// response Time
+app.use(responseTime());
 
 // Development logging
 if (process.env.NODE_ENV === 'development') {
@@ -43,7 +62,7 @@ if (process.env.NODE_ENV === 'development') {
 
 // Limit requests from same API
 const limiter = rateLimit({
-    max: 5,
+    max: 15,
     windowMs: 1 * 60 * 1000,
     message: 'Too many requests from this IP, please try again after sometime 😅!'
 });
